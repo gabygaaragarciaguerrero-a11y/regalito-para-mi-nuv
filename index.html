@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Pop My Heart - Regalo Geek</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser-arcade-physics.min.js"></script>
+    <style>
+        body { margin: 0; background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; font-family: 'Courier New', Courier, monospace; }
+        canvas { border: 5px solid #00ffcc; border-radius: 10px; box-shadow: 0 0 20px #00ffcc; }
+    </style>
+</head>
+<body>
+<script>
+const CONFIG = {
+    pareja: "Mi chico nuv",
+    mensajes: [
+        "¡Eres la coca cola de mi pizza! 🍕",
+        "sos inmortal jaja. 🎮",
+        "Error 404: Corazón no encontrado (lo tienes tú) 💻",
+        "Eres el mejor loot de mi vida. 💎",
+        "Mi miope favorito 👓",
+        "El top 10 de mejores caidas jjsjsjjs 🤸‍♂️",
+        "Eres el six de mi seven qwq ✨",
+        "Yo moriria por ti asi como mi the weeknd gg 🎤"
+    ],
+    final: "¡Te amo. Eres mi punto y coma (;), sin ti nada tiene sentido! ❤️"
+};
+
+const config = {
+    type: Phaser.AUTO,
+    width: 800,
+    height: 600,
+    physics: { default: 'arcade', arcade: { gravity: { y: 0 } } },
+    scene: { preload: preload, create: create, update: update }
+};
+
+const game = new Phaser.Game(config);
+let hearts, msgText, bg;
+let collected = 0;
+let gameStarted = false;
+
+function preload() {
+    this.load.image('retroBG', 'https://labs.phaser.io/assets/skies/space3.png');
+    // --- ACTUALIZADO: Ahora busca joji.mp3 ---
+    this.load.audio('musicaJoji', 'joji.mp3');
+}
+
+function create() {
+    bg = this.add.tileSprite(400, 300, 800, 600, 'retroBG').setAlpha(0.7);
+
+    msgText = this.add.text(400, 300, "💖 REGALO PARA: " + CONFIG.pareja + " 💖\n\n(HAZ CLIC PARA EMPEZAR)", { 
+        fontSize: '25px', fill: '#00ffcc', align: 'center', backgroundColor: '#000', padding: 20 
+    }).setOrigin(0.5).setDepth(10).setInteractive();
+
+    hearts = this.physics.add.group();
+
+    this.input.on('pointerdown', function () {
+        if (!gameStarted) {
+            gameStarted = true;
+            
+            // Intento de reproducir Joji
+            try {
+                this.sound.play('musicaJoji', { loop: true, volume: 0.5 });
+            } catch(e) {
+                console.log("No se pudo cargar joji.mp3");
+            }
+            
+            msgText.setText("¡Revienta los corazones!");
+            msgText.setPosition(400, 50);
+            msgText.setFontSize(18);
+
+            this.time.addEvent({
+                delay: 1300,
+                callback: () => { if (collected < 8) spawnHeart(this); },
+                loop: true
+            });
+        }
+    }, this);
+}
+
+function spawnHeart(scene) {
+    let x = Phaser.Math.Between(100, 700);
+    let h = scene.add.text(x, 650, '❤️', { fontSize: '50px' }).setOrigin(0.5).setInteractive();
+    
+    scene.physics.add.existing(h);
+    h.body.setVelocityY(-130); 
+
+    h.on('pointerdown', function() {
+        h.destroy();
+        if (collected < 8) {
+            msgText.setText(CONFIG.mensajes[collected]);
+            collected++;
+        }
+
+        if (collected === 8) {
+            scene.add.text(400, 300, CONFIG.final, { 
+                fontSize: '22px', fill: '#fff', backgroundColor: '#ff4d6d', 
+                padding: 25, align: 'center', wordWrap: { width: 550 }
+            }).setOrigin(0.5).setDepth(20);
+        }
+    });
+}
+
+function update() {
+    if (bg) bg.tilePositionY -= 0.5;
+}
+</script>
+</body>
+</html>
